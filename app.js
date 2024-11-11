@@ -14,12 +14,16 @@ const firebaseConfig = {
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
-
-// Initialize Firestore
 const db = firebase.firestore();
 
-let allTodos = getTodos();
-updateTodoList();
+// Helper function to format dates consistently (e.g., "MM/DD/YYYY")
+function formatDate(date) {
+  return new Date(date).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+}
 
 todoForm.addEventListener("submit", function (e) {
   e.preventDefault();
@@ -34,7 +38,7 @@ document.getElementById("add-button").addEventListener("click", function (e) {
 async function addTodo() {
   const todoText = todoInput.value.trim();
   if (todoText.length > 0) {
-    const today = new Date().toLocaleDateString();
+    const today = formatDate(new Date());
     const todoObject = {
       text: todoText,
       date: today,
@@ -43,10 +47,19 @@ async function addTodo() {
 
     try {
       // Add todo to Firestore
-      await db.collection("todos").add(todoObject);
-      console.log("Task added successfully:", todoObject);
+      const docRef = await db.collection("todos").add(todoObject);
+      todoObject.id = docRef.id;
+
+      // Check if we need to add the date header
+      if (!document.querySelector(".date-header")) {
+        const dateHeader = document.createElement("li");
+        dateHeader.classList.add("date-header");
+        dateHeader.textContent = today;
+        todoListUL.append(dateHeader);
+      }
+
+      appendTodoToList(todoObject); // Only append the new item
       todoInput.value = "";
-      updateTodoList();
     } catch (error) {
       console.error("Error adding task:", error);
     }
@@ -58,18 +71,22 @@ async function updateTodoList() {
   const todos = await getTodos();
 
   let currentDisplayedDate = "";
-
-  todos.forEach((todo, index) => {
-    if (todo.date !== currentDisplayedDate) {
-      currentDisplayedDate = todo.date;
+  todos.forEach((todo) => {
+    const formattedDate = formatDate(todo.date);
+    if (formattedDate !== currentDisplayedDate) {
+      currentDisplayedDate = formattedDate;
       const dateHeader = document.createElement("li");
       dateHeader.classList.add("date-header");
       dateHeader.textContent = currentDisplayedDate;
       todoListUL.append(dateHeader);
     }
-    const todoItem = createTodoItem(todo, index);
-    todoListUL.append(todoItem);
+    appendTodoToList(todo);
   });
+}
+
+function appendTodoToList(todo) {
+  const todoItem = createTodoItem(todo);
+  todoListUL.append(todoItem);
 }
 
 function createTodoItem(todo) {
@@ -89,7 +106,7 @@ function createTodoItem(todo) {
     `;
 
   const deleteButton = todoLI.querySelector(".delete-button");
-  deleteButton.addEventListener("click", () => deleteTodoItem(todo.id));
+  deleteButton.addEventListener("click", () => deleteTodoItem(todo.id, todoLI));
 
   const checkbox = todoLI.querySelector("input");
   checkbox.addEventListener("change", async () => {
@@ -97,23 +114,34 @@ function createTodoItem(todo) {
       .collection("todos")
       .doc(todo.id)
       .update({ completed: checkbox.checked });
-    updateTodoList();
+    todoLI.querySelector(".todo-text").style.textDecoration = checkbox.checked
+      ? "line-through"
+      : "none";
+    todoLI.querySelector(".todo-text").style.color = checkbox.checked
+      ? "var(--secondary-color)"
+      : "var(--text-color)";
   });
 
   return todoLI;
 }
 
-async function deleteTodoItem(todoId) {
+async function deleteTodoItem(todoId, todoElement) {
   await db.collection("todos").doc(todoId).delete();
-  updateTodoList();
-}
+  todoElement.remove(); // Only remove the deleted item
 
-function saveTodos() {
-  const todosJSON = JSON.stringify(allTodos);
-  localStorage.setItem("todos", todosJSON);
+  // Check if there are no remaining tasks and remove the date header if so
+  if (
+    todoListUL.children.length === 1 &&
+    todoListUL.querySelector(".date-header")
+  ) {
+    todoListUL.querySelector(".date-header").remove();
+  }
 }
 
 async function getTodos() {
   const todosSnapshot = await db.collection("todos").get();
   return todosSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 }
+
+// Initial load of todo list
+updateTodoList();
