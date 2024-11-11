@@ -26,6 +26,11 @@ todoForm.addEventListener("submit", function (e) {
   addTodo();
 });
 
+document.getElementById("add-button").addEventListener("click", function (e) {
+  e.preventDefault();
+  addTodo();
+});
+
 async function addTodo() {
   const todoText = todoInput.value.trim();
   if (todoText.length > 0) {
