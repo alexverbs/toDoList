@@ -54,6 +54,7 @@ h1{
     font: inherit;
     color: var(--text-color);
     caret-color: var(--accent-color);
+    list-style-type: none;
 }
 
 #todo-input:focus{
@@ -86,6 +87,7 @@ form{
     padding: 0 16px;
     background-color: var(--primary-color);
     border-radius: 15px; 
+    list-style-type: none;
 }
 
 .todo .todo-text{
@@ -152,6 +154,12 @@ input[type="checkbox"]{
     text-align: left;
     list-style-type: none;
 }
+
+#todo-list{
+    list-style-type: none;
+}
+
+
 
 @media(max-width: 500px){
     html{
