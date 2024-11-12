@@ -27,3 +27,6 @@ Hosting: GitHub Pages for convenient web access.
 ### Learning Experience
 
 This project gave me hands-on experience with Firebase Firestore and taught me valuable lessons about structuring a single-page application with real-time data. Through daily use, I’ve learned the importance of user-centered design and functionality in a productivity tool.
+
+<img width="1512" alt="toDoList" src="https://github.com/user-attachments/assets/175547c1-4b20-41e9-8777-cc23911a0518">
+
