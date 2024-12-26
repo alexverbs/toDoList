@@ -159,6 +159,33 @@ input[type="checkbox"]{
     list-style-type: none;
 }
 
+#logout-button{
+    padding: 10px 20px;
+    background-color: var(--accent-color);
+    border: none;
+    border-radius: 1000px;
+    font: inherit;
+    color: var(--background);
+    cursor: pointer;
+    font-weight: 600;
+    transition: 200ms ease;
+    margin-top: 20px;
+}
+
+#logout-button:hover{
+    background-color: red;
+}
+
+#user-info{
+    position: absolute;
+    top: 20px;
+    right: 15px;
+}
+#user-email {
+    font-size: 14px;
+    color: var(--text-color);
+}
+
 
 
 @media(max-width: 500px){

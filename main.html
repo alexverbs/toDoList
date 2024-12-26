@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To do List</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="icons/AV-faviconNEW.ico" type="image/x-icon">
+    <!-- Firebase App (the core Firebase SDK) is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js" type="module"></script>
+
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js" type="module"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js" type="module"></script>
+
+    <!-- Your app's JavaScript file -->
+    <script src="app.js" type="module"></script>
+</head>
+<body>
+    <div id="user-info">
+        <span id="user-email"></span>
+    </div>
+    <h1>Alex's To do List</h1>
+    <div class="wrapper">
+        <form id="todo-form">
+            <input id="todo-input" type="text" placeholder="Enter task" autocomplete="off">
+            <button id="add-button" type="submit">ADD</button>
+        </form>
+        <ul id="todo-list">
+        </ul>
+    </div>
+    <button id="logout-button">Logout</button>
+</body>
+</html>

@@ -1,21 +1,55 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc,
+  updateDoc,
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut,
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { firebaseConfig } from "./config.js";
+
 const todoForm = document.querySelector("form");
 const todoInput = document.getElementById("todo-input");
 const todoListUL = document.getElementById("todo-list");
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDazmrMZVjsn2-aTp-wrIznxF-dglF66_s",
-  authDomain: "todolist-abv.firebaseapp.com",
-  projectId: "todolist-abv",
-  storageBucket: "todolist-abv.firebasestorage.app",
-  messagingSenderId: "618134673179",
-  appId: "1:618134673179:web:66f974edd8a211a33fe5be",
-  measurementId: "G-T9VXDVVV2J",
-};
-
 // Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
 console.log("Firebase initialized");
+
+const userEmail = document.getElementById("user-email");
+const logoutButton = document.getElementById("logout-button");
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    // User is signed in
+    userEmail.textContent = `Signed in as: ${user.email}`;
+    logoutButton.style.display = "block";
+  } else {
+    // User is signed out
+    userEmail.textContent = "";
+    logoutButton.style.display = "none";
+    window.location.href = "index.html"; // Redirect to login page
+  }
+});
+
+logoutButton.addEventListener("click", async () => {
+  try {
+    await signOut(auth);
+    // Redirect is handled by onAuthStateChanged
+  } catch (error) {
+    console.error("Error signing out:", error);
+  }
+});
 
 // Helper function to format dates consistently
 function formatDate(date) {
@@ -37,18 +71,22 @@ document.getElementById("add-button").addEventListener("click", function (e) {
 });
 
 async function addTodo() {
+  const user = auth.currentUser;
+  if (!user) return;
+
   const todoText = todoInput.value.trim();
+  const today = formatDate(new Date());
   if (todoText.length > 0) {
-    const today = formatDate(new Date());
     const todoObject = {
       text: todoText,
       date: today,
       completed: false,
+      userId: user.uid,
     };
 
     try {
       // Add todo to Firestore
-      const docRef = await db.collection("todos").add(todoObject);
+      const docRef = await addDoc(collection(db, "todos"), todoObject);
       todoObject.id = docRef.id;
 
       // Check if date section already exists
@@ -130,10 +168,7 @@ function createTodoItem(todo) {
 
   const checkbox = todoLI.querySelector("input");
   checkbox.addEventListener("change", async () => {
-    await db
-      .collection("todos")
-      .doc(todo.id)
-      .update({ completed: checkbox.checked });
+    await updateDoc(doc(db, "todos", todo.id), { completed: checkbox.checked });
     todoLI.querySelector(".todo-text").style.textDecoration = checkbox.checked
       ? "line-through"
       : "none";
@@ -146,7 +181,7 @@ function createTodoItem(todo) {
 }
 
 async function deleteTodoItem(todoId, todoElement) {
-  await db.collection("todos").doc(todoId).delete();
+  await deleteDoc(doc(db, "todos", todoId));
   todoElement.remove();
 
   // Remove the date section if it's empty
@@ -157,8 +192,12 @@ async function deleteTodoItem(todoId, todoElement) {
 }
 
 async function getTodos() {
-  const todosSnapshot = await db.collection("todos").get();
-  return todosSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  const user = auth.currentUser;
+  if (!user) return [];
+
+  const q = query(collection(db, "todos"), where("userId", "==", user.uid));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 }
 
 // Initial load of todo list
