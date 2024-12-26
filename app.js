@@ -15,6 +15,7 @@ const firebaseConfig = {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+console.log("Firebase initialized");
 
 // Helper function to format dates consistently
 function formatDate(date) {
