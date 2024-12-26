@@ -13,6 +13,12 @@ import {
   onAuthStateChanged,
   signOut,
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import {
+  onSnapshot,
+  query,
+  where,
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
 import { firebaseConfig } from "./config.js";
 
 const todoForm = document.querySelector("form");
@@ -29,15 +35,21 @@ console.log("Firebase initialized");
 const userEmail = document.getElementById("user-email");
 const logoutButton = document.getElementById("logout-button");
 
+let unsubscribe;
+
 onAuthStateChanged(auth, (user) => {
   if (user) {
     // User is signed in
     userEmail.textContent = `Signed in as: ${user.email}`;
     logoutButton.style.display = "block";
+    unsubscribe = setupTodoListener(user);
   } else {
     // User is signed out
     userEmail.textContent = "";
     logoutButton.style.display = "none";
+    if (unsubscribe) {
+      unsubscribe();
+    }
     window.location.href = "index.html"; // Redirect to login page
   }
 });
@@ -106,33 +118,38 @@ async function addTodo() {
   }
 }
 
-async function updateTodoList() {
-  todoListUL.innerHTML = "";
-  const todos = await getTodos();
+function setupTodoListener(user) {
+  if (!user) return;
 
-  // Group todos by date and sort by date descending
-  const groupedTodos = todos.reduce((groups, todo) => {
-    const date = formatDate(todo.date);
-    if (!groups[date]) {
-      groups[date] = [];
-    }
-    groups[date].push(todo);
-    return groups;
-  }, {});
+  const q = query(collection(db, "todos"), where("userId", "==", user.uid));
+  return onSnapshot(q, (snapshot) => {
+    todoListUL.innerHTML = "";
+    const todos = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
-  // Sort dates in descending order
-  const sortedDates = Object.keys(groupedTodos).sort(
-    (a, b) => new Date(b) - new Date(a)
-  );
+    // Group todos by date and sort by date descending
+    const groupedTodos = todos.reduce((groups, todo) => {
+      const date = formatDate(todo.date);
+      if (!groups[date]) {
+        groups[date] = [];
+      }
+      groups[date].push(todo);
+      return groups;
+    }, {});
 
-  // Render each date section and its todos
-  sortedDates.forEach((date) => {
-    const dateSection = createDateSection(date);
-    groupedTodos[date].forEach((todo) => {
-      const todoItem = createTodoItem(todo);
-      dateSection.querySelector("ul").append(todoItem);
+    // Sort dates in descending order
+    const sortedDates = Object.keys(groupedTodos).sort(
+      (a, b) => new Date(b) - new Date(a)
+    );
+
+    // Render each date section and its todos
+    sortedDates.forEach((date) => {
+      const dateSection = createDateSection(date);
+      groupedTodos[date].forEach((todo) => {
+        const todoItem = createTodoItem(todo);
+        dateSection.querySelector("ul").append(todoItem);
+      });
+      todoListUL.append(dateSection);
     });
-    todoListUL.append(dateSection);
   });
 }
 
@@ -199,6 +216,3 @@ async function getTodos() {
   const querySnapshot = await getDocs(q);
   return querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 }
-
-// Initial load of todo list
-updateTodoList();
