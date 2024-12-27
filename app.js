@@ -98,19 +98,8 @@ async function addTodo() {
 
     try {
       // Add todo to Firestore
-      const docRef = await addDoc(collection(db, "todos"), todoObject);
-      todoObject.id = docRef.id;
-
-      // Check if date section already exists
-      let dateSection = document.querySelector(`[data-date="${today}"]`);
-      if (!dateSection) {
-        // Create a new date section if it doesn't exist
-        dateSection = createDateSection(today);
-        todoListUL.prepend(dateSection);
-      }
-      // Add new todo item to the top of the date section
-      const todoItem = createTodoItem(todoObject);
-      dateSection.querySelector("ul").prepend(todoItem);
+      await addDoc(collection(db, "todos"), todoObject);
+      // Clear the input field
       todoInput.value = "";
     } catch (error) {
       console.error("Error adding task:", error);
