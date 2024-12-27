@@ -8,6 +8,8 @@ This To-Do app streamlines task management with a minimalist design and smart da
 
 ### Key Features
 
+User Authentication: Users can make an account so their todo list is private to them. You can always view what email you are signed into and there is a convinient logout button
+
 Task Entry and Display: Add, view, and delete tasks with ease.
 
 Automatic Date Headers: Each day starts fresh with a new date header, automatically created when a new task is added.
@@ -20,7 +22,7 @@ Simple, Clean UI: Intuitive design for seamless daily task management.
 
 Front End: HTML, CSS, JavaScript for a responsive and interactive experience.
 
-Cloud Storage: Firebase Firestore for secure, real-time storage of tasks.
+Cloud Storage and Authentication: Firebase Firestore for secure, real-time storage of tasks and Firebase Authentication.
 
 Hosting: GitHub Pages for convenient web access.
 
